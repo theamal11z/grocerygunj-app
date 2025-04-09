@@ -77,7 +77,7 @@ export default function DarkModeToggle({
         onValueChange={handleToggle}
         trackColor={{ false: '#ccc', true: '#2ECC71' }}
         thumbColor="#fff"
-        {...getAccessibleProps(t('settings.toggleDarkMode'), 'switch')}
+        {...getAccessibleProps(t('settings.toggleDarkMode'), 'button')}
       />
     </Container>
   );
@@ -94,22 +94,22 @@ const getContainerHeight = (size: string) => {
 
 // Styled components
 const Container = styled.View<{ size: string }>`
-  flex-direction: row;
-  align-items: center;
-  height: ${props => getContainerHeight(props.size)}px;
-  background-color: ${props => props.theme.colors.card};
-  padding-horizontal: ${props => props.theme.spacing.md}px;
-  border-radius: ${props => props.theme.borderRadius.md}px;
+  flexDirection: row;
+  alignItems: center;
+  width: ${props => props.size === 'small' ? 'auto' : '100%'};
+  backgroundColor: ${props => props.theme.colors.card};
+  paddingHorizontal: ${props => props.theme.spacing.md}px;
+  borderRadius: ${props => props.theme.borderRadius.md}px;
 `;
 
 const LabelText = styled.Text<{ isDarkMode: boolean }>`
-  font-family: ${props => props.theme.typography.fontFamily.medium};
-  font-size: ${props => props.theme.typography.fontSize.md}px;
-  color: ${props => props.theme.colors.textPrimary};
-  margin-horizontal: ${props => props.theme.spacing.md}px;
+  fontFamily: ${props => props.theme.typography.fontFamily.medium};
+  fontSize: ${props => props.theme.typography.fontSize.md}px;
+  color: ${props => props.isDarkMode ? props.theme.colors.white : props.theme.colors.textPrimary};
+  marginHorizontal: ${props => props.theme.spacing.md}px;
   flex: 1;
 `;
 
 const StyledSwitch = styled(Switch)`
-  margin-left: ${props => props.theme.spacing.sm}px;
+  marginLeft: ${props => props.theme.spacing.sm}px;
 `;

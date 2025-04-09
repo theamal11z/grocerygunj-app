@@ -91,24 +91,24 @@ const ToastContainer = styled(Animated.View)`
   left: ${width / 2 - 150}px;
   width: 300px;
   min-height: 50px;
-  border-radius: 25px;
-  padding-horizontal: ${props => props.theme.spacing.xl}px;
-  padding-vertical: ${props => props.theme.spacing.md}px;
-  justify-content: center;
-  align-items: center;
+  borderRadius: 25px;
+  paddingHorizontal: ${props => props.theme.spacing.xl}px;
+  paddingVertical: ${props => props.theme.spacing.md}px;
+  justifyContent: center;
+  alignItems: center;
   z-index: 9999;
   
   /* Shadow */
-  shadow-color: ${props => props.theme.colors.shadow};
-  shadow-offset: 0px 2px;
-  shadow-opacity: 0.1;
-  shadow-radius: 4px;
+  shadowColor: ${props => props.theme.colors.shadow};
+  shadowOffset: 0px 2px;
+  shadowOpacity: 0.1;
+  shadowRadius: 4px;
   elevation: 5;
 `;
 
 const ToastMessage = styled.Text`
-  font-family: ${props => props.theme.typography.fontFamily.medium};
-  font-size: ${props => props.theme.typography.fontSize.sm}px;
+  fontFamily: ${props => props.theme.typography.fontFamily.medium};
+  fontSize: ${props => props.theme.typography.fontSize.sm}px;
   color: ${props => props.theme.colors.white};
-  text-align: center;
+  textAlign: center;
 `;

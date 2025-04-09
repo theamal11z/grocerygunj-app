@@ -95,7 +95,7 @@ export default function SettingsScreen() {
               onValueChange={toggleDarkMode}
               trackColor={{ false: '#ccc', true: '#2ECC71' }}
               thumbColor="#fff"
-              {...getAccessibleProps(t('settings.toggleDarkMode'), 'switch')}
+              {...getAccessibleProps(t('settings.toggleDarkMode'), 'button')}
             />
           </SettingRow>
           
@@ -129,7 +129,7 @@ export default function SettingsScreen() {
               onValueChange={toggleNotifications}
               trackColor={{ false: '#ccc', true: '#2ECC71' }}
               thumbColor="#fff"
-              {...getAccessibleProps(t('settings.toggleNotifications'), 'switch')}
+              {...getAccessibleProps(t('settings.toggleNotifications'), 'button')}
             />
           </SettingRow>
         </Section>
@@ -163,18 +163,18 @@ export default function SettingsScreen() {
 // Styled components
 const Container = styled(SafeAreaView)`
   flex: 1;
-  background-color: ${props => props.theme.colors.background};
+  backgroundColor: ${props => props.theme.colors.background};
 `;
 
 const Header = styled.View`
   padding: ${props => props.theme.spacing.lg}px;
-  border-bottom-width: 1px;
-  border-bottom-color: ${props => props.theme.colors.border};
+  borderBottomWidth: 1px;
+  borderBottomColor: ${props => props.theme.colors.border};
 `;
 
 const HeaderTitle = styled.Text`
-  font-family: ${props => props.theme.typography.fontFamily.bold};
-  font-size: ${props => props.theme.typography.fontSize.xl}px;
+  fontFamily: ${props => props.theme.typography.fontFamily.bold};
+  fontSize: ${props => props.theme.typography.fontSize.xl}px;
   color: ${props => props.theme.colors.textPrimary};
 `;
 
@@ -187,30 +187,30 @@ const Section = styled.View`
 `;
 
 const SectionTitle = styled.Text`
-  font-family: ${props => props.theme.typography.fontFamily.semiBold};
-  font-size: ${props => props.theme.typography.fontSize.sm}px;
+  fontFamily: ${props => props.theme.typography.fontFamily.semiBold};
+  fontSize: ${props => props.theme.typography.fontSize.sm}px;
   color: ${props => props.theme.colors.textSecondary};
   margin: ${props => props.theme.spacing.md}px ${props => props.theme.spacing.lg}px;
-  text-transform: uppercase;
+  textTransform: uppercase;
 `;
 
 const SettingRow = styled.TouchableOpacity`
-  flex-direction: row;
-  align-items: center;
+  flexDirection: row;
+  alignItems: center;
   padding: ${props => props.theme.spacing.lg}px;
-  background-color: ${props => props.theme.colors.card};
-  border-bottom-width: 1px;
-  border-bottom-color: ${props => props.theme.colors.border};
+  backgroundColor: ${props => props.theme.colors.card};
+  borderBottomWidth: 1px;
+  borderBottomColor: ${props => props.theme.colors.border};
 `;
 
 const SettingIconContainer = styled.View`
   width: 40px;
   height: 40px;
-  border-radius: 20px;
-  background-color: ${props => props.theme.colors.primaryLight};
-  align-items: center;
-  justify-content: center;
-  margin-right: ${props => props.theme.spacing.md}px;
+  borderRadius: 20px;
+  backgroundColor: ${props => props.theme.colors.primaryLight};
+  alignItems: center;
+  justifyContent: center;
+  marginRight: ${props => props.theme.spacing.md}px;
 `;
 
 const SettingContent = styled.View`
@@ -218,31 +218,31 @@ const SettingContent = styled.View`
 `;
 
 const SettingLabel = styled.Text`
-  font-family: ${props => props.theme.typography.fontFamily.medium};
-  font-size: ${props => props.theme.typography.fontSize.md}px;
+  fontFamily: ${props => props.theme.typography.fontFamily.medium};
+  fontSize: ${props => props.theme.typography.fontSize.md}px;
   color: ${props => props.theme.colors.textPrimary};
 `;
 
 const SettingValue = styled.Text`
-  font-family: ${props => props.theme.typography.fontFamily.regular};
-  font-size: ${props => props.theme.typography.fontSize.sm}px;
+  fontFamily: ${props => props.theme.typography.fontFamily.regular};
+  fontSize: ${props => props.theme.typography.fontSize.sm}px;
   color: ${props => props.theme.colors.textSecondary};
-  margin-top: 2px;
+  marginTop: 2px;
 `;
 
 const LogoutButton = styled.TouchableOpacity`
-  flex-direction: row;
-  align-items: center;
-  justify-content: center;
+  flexDirection: row;
+  alignItems: center;
+  justifyContent: center;
   margin: ${props => props.theme.spacing.xl}px;
   padding: ${props => props.theme.spacing.md}px;
-  background-color: ${props => props.theme.colors.error};
-  border-radius: ${props => props.theme.borderRadius.md}px;
+  backgroundColor: ${props => props.theme.colors.error};
+  borderRadius: ${props => props.theme.borderRadius.md}px;
 `;
 
 const LogoutText = styled.Text`
-  font-family: ${props => props.theme.typography.fontFamily.semiBold};
-  font-size: ${props => props.theme.typography.fontSize.md}px;
+  fontFamily: ${props => props.theme.typography.fontFamily.semiBold};
+  fontSize: ${props => props.theme.typography.fontSize.md}px;
   color: ${props => props.theme.colors.white};
-  margin-left: ${props => props.theme.spacing.sm}px;
+  marginLeft: ${props => props.theme.spacing.sm}px;
 `;

@@ -96,29 +96,29 @@ interface ContainerProps {
 
 const Container = styled(TouchableOpacity)<ContainerProps>`
   padding: ${props => props.theme.spacing.sm}px;
-  border-radius: ${props => props.theme.borderRadius.md}px;
+  borderRadius: ${props => props.theme.borderRadius.md}px;
   position: relative;
-  background-color: ${props => props.backgroundColor};
+  backgroundColor: ${props => props.backgroundColor};
 `;
 
 const Badge = styled(Animated.View)`
   position: absolute;
   top: -5px;
   right: -5px;
-  background-color: ${props => props.theme.colors.error};
-  border-radius: 10px;
-  min-width: 20px;
+  backgroundColor: ${props => props.theme.colors.error};
+  borderRadius: 10px;
+  minWidth: 20px;
   height: 20px;
-  justify-content: center;
-  align-items: center;
-  padding-horizontal: 4px;
-  border-width: 1.5px;
-  border-color: ${props => props.theme.colors.white};
+  justifyContent: center;
+  alignItems: center;
+  paddingHorizontal: 4px;
+  borderWidth: 1.5px;
+  borderColor: ${props => props.theme.colors.white};
 `;
 
 const BadgeText = styled.Text`
   color: ${props => props.theme.colors.white};
-  font-size: 10px;
-  font-family: ${props => props.theme.typography.fontFamily.semiBold};
-  text-align: center;
+  fontSize: 10px;
+  fontFamily: ${props => props.theme.typography.fontFamily.semiBold};
+  textAlign: center;
 `;

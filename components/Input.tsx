@@ -64,14 +64,14 @@ export function Input({
 }
 
 const InputWrapper = styled.View`
-  margin-bottom: ${props => props.theme.spacing.md}px;
+  marginBottom: ${props => props.theme.spacing.md}px;
 `;
 
 const InputLabel = styled.Text`
-  font-family: ${props => props.theme.typography.fontFamily.medium};
-  font-size: ${props => props.theme.typography.fontSize.sm}px;
+  fontFamily: ${props => props.theme.typography.fontFamily.medium};
+  fontSize: ${props => props.theme.typography.fontSize.sm}px;
   color: ${props => props.theme.colors.textSecondary};
-  margin-bottom: ${props => props.theme.spacing.xs}px;
+  marginBottom: ${props => props.theme.spacing.xs}px;
 `;
 
 interface ContainerProps {
@@ -80,46 +80,48 @@ interface ContainerProps {
 }
 
 const BaseContainer = styled.View<ContainerProps>`
-  flex-direction: row;
-  align-items: center;
-  border-radius: ${props => props.theme.borderRadius.md}px;
+  flexDirection: row;
+  alignItems: center;
+  borderRadius: ${props => props.theme.borderRadius.md}px;
   height: 50px;
   overflow: hidden;
   
-  border-color: ${props => {
-    if (props.hasError) return props.theme.colors.error;
-    if (props.isFocused) return props.theme.colors.primary;
-    return props.theme.colors.border;
-  }};
+  ${props => props.hasError ? `
+    borderColor: ${props.theme.colors.error};
+  ` : props.isFocused ? `
+    borderColor: ${props.theme.colors.primary};
+  ` : `
+    borderColor: ${props.theme.colors.border};
+  `}
 `;
 
 const OutlinedContainer = styled(BaseContainer)`
-  border-width: 1px;
-  background-color: transparent;
-  padding-horizontal: ${props => props.theme.spacing.md}px;
+  borderWidth: 1px;
+  backgroundColor: transparent;
+  paddingHorizontal: ${props => props.theme.spacing.md}px;
 `;
 
 const FilledContainer = styled(BaseContainer)`
-  border-width: 0;
-  background-color: ${props => props.theme.colors.border};
-  padding-horizontal: ${props => props.theme.spacing.md}px;
+  borderWidth: 0;
+  backgroundColor: ${props => props.theme.colors.border};
+  paddingHorizontal: ${props => props.theme.spacing.md}px;
 `;
 
 const StyledInput = styled.TextInput`
   flex: 1;
-  font-family: ${props => props.theme.typography.fontFamily.regular};
-  font-size: ${props => props.theme.typography.fontSize.md}px;
+  fontFamily: ${props => props.theme.typography.fontFamily.regular};
+  fontSize: ${props => props.theme.typography.fontSize.md}px;
   color: ${props => props.theme.colors.textPrimary};
   height: 50px;
 `;
 
 const IconContainer = styled.View`
-  margin-horizontal: ${props => props.theme.spacing.xs}px;
+  marginHorizontal: ${props => props.theme.spacing.xs}px;
 `;
 
 const ErrorMessage = styled.Text`
-  font-family: ${props => props.theme.typography.fontFamily.regular};
-  font-size: ${props => props.theme.typography.fontSize.sm}px;
+  fontFamily: ${props => props.theme.typography.fontFamily.regular};
+  fontSize: ${props => props.theme.typography.fontSize.sm}px;
   color: ${props => props.theme.colors.error};
-  margin-top: ${props => props.theme.spacing.xs}px;
+  marginTop: ${props => props.theme.spacing.xs}px;
 `;

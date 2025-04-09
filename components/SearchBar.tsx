@@ -122,34 +122,34 @@ export default function SearchBar({
 
 // Styled components
 const Container = styled.View`
-  flex-direction: row;
-  align-items: center;
-  background-color: ${props => props.theme.colors.card};
-  border-radius: ${props => props.theme.borderRadius.md}px;
-  padding-horizontal: ${props => props.theme.spacing.md}px;
+  flexDirection: row;
+  alignItems: center;
+  backgroundColor: ${props => props.theme.colors.card};
+  borderRadius: ${props => props.theme.borderRadius.md}px;
+  paddingHorizontal: ${props => props.theme.spacing.md}px;
   height: 48px;
-  border-width: 1px;
-  border-color: ${props => props.theme.colors.border};
+  borderWidth: 1px;
+  borderColor: ${props => props.theme.colors.border};
 `;
 
 const Input = styled(TextInput)`
   flex: 1;
-  font-family: ${props => props.theme.typography.fontFamily.regular};
-  font-size: ${props => props.theme.typography.fontSize.md}px;
+  fontFamily: ${props => props.theme.typography.fontFamily.regular};
+  fontSize: ${props => props.theme.typography.fontSize.md}px;
   color: ${props => props.theme.colors.textPrimary};
-  padding-vertical: ${props => props.theme.spacing.xs}px;
+  paddingVertical: ${props => props.theme.spacing.xs}px;
   height: 100%;
 `;
 
 const SearchIcon = styled.View`
-  margin-right: ${props => props.theme.spacing.sm}px;
+  marginRight: ${props => props.theme.spacing.sm}px;
 `;
 
 const ClearButton = styled.TouchableOpacity`
   padding: ${props => props.theme.spacing.xs}px;
-  margin-left: ${props => props.theme.spacing.xs}px;
+  marginLeft: ${props => props.theme.spacing.xs}px;
 `;
 
 const LoadingIndicator = styled(ActivityIndicator)`
-  margin-left: ${props => props.theme.spacing.xs}px;
+  marginLeft: ${props => props.theme.spacing.xs}px;
 `;

@@ -119,39 +119,39 @@ export default function ProductsScreen() {
 // Styled components
 const Container = styled(SafeAreaView)`
   flex: 1;
-  background-color: ${props => props.theme.colors.background};
+  backgroundColor: ${props => props.theme.colors.background};
 `;
 
 const Header = styled.View`
-  flex-direction: row;
-  align-items: center;
-  justify-content: space-between;
-  padding-horizontal: ${props => props.theme.spacing.lg}px;
-  padding-vertical: ${props => props.theme.spacing.md}px;
-  border-bottom-width: 1px;
-  border-bottom-color: ${props => props.theme.colors.border};
+  flexDirection: row;
+  alignItems: center;
+  justifyContent: space-between;
+  paddingHorizontal: ${props => props.theme.spacing.lg}px;
+  paddingVertical: ${props => props.theme.spacing.md}px;
+  borderBottomWidth: 1px;
+  borderBottomColor: ${props => props.theme.colors.border};
 `;
 
 const BackButton = styled.TouchableOpacity`
   width: 40px;
   height: 40px;
-  align-items: center;
-  justify-content: center;
+  alignItems: center;
+  justifyContent: center;
 `;
 
 const Title = styled.Text`
-  font-family: ${props => props.theme.typography.fontFamily.semiBold};
-  font-size: ${props => props.theme.typography.fontSize.lg}px;
+  fontFamily: ${props => props.theme.typography.fontFamily.semiBold};
+  fontSize: ${props => props.theme.typography.fontSize.lg}px;
   color: ${props => props.theme.colors.textPrimary};
   flex: 1;
-  text-align: center;
+  textAlign: center;
 `;
 
 const FilterButton = styled.TouchableOpacity`
   width: 40px;
   height: 40px;
-  align-items: center;
-  justify-content: center;
+  alignItems: center;
+  justifyContent: center;
 `;
 
 const Content = styled.ScrollView`
@@ -160,9 +160,9 @@ const Content = styled.ScrollView`
 `;
 
 const ProductsGrid = styled.View`
-  flex-direction: row;
-  flex-wrap: wrap;
-  justify-content: space-between;
+  flexDirection: row;
+  flexWrap: wrap;
+  justifyContent: space-between;
 `;
 
 const ProductCardWrapper = styled.View`
@@ -172,14 +172,14 @@ const ProductCardWrapper = styled.View`
 
 const EmptyStateContainer = styled.View`
   flex: 1;
-  justify-content: center;
-  align-items: center;
+  justifyContent: center;
+  alignItems: center;
   padding: ${props => props.theme.spacing.xl}px;
 `;
 
 const EmptyStateText = styled.Text`
-  font-family: ${props => props.theme.typography.fontFamily.medium};
-  font-size: ${props => props.theme.typography.fontSize.md}px;
+  fontFamily: ${props => props.theme.typography.fontFamily.medium};
+  fontSize: ${props => props.theme.typography.fontSize.md}px;
   color: ${props => props.theme.colors.textSecondary};
-  text-align: center;
+  textAlign: center;
 `;
