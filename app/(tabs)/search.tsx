@@ -29,6 +29,7 @@ import { router } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Animated, { FadeIn, FadeInDown, FadeInRight } from 'react-native-reanimated';
 import type { Product } from '@/lib/supabase';
+import { AnimationConfig } from '@/lib/AnimationConfig';
 
 const { width } = Dimensions.get('window');
 const RECENT_SEARCHES_KEY = 'recent_searches';
@@ -43,6 +44,8 @@ export default function SearchScreen() {
   const [recentSearches, setRecentSearches] = useState<string[]>([]);
   const [inStockOnly, setInStockOnly] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
+  const animationsEnabled = AnimationConfig.isEnabled();
+  const [isDataReady, setIsDataReady] = useState(false);
   
   // Trending searches - in a real app, these would come from analytics
   const trendingSearches = ['Apples', 'Organic', 'Milk', 'Rice', 'Vegetables'];
@@ -53,6 +56,12 @@ export default function SearchScreen() {
     fetchCategories();
     fetchPopularProducts();
   }, [fetchCategories, fetchPopularProducts]);
+  
+  useEffect(() => {
+    if (products && categories && !loading) {
+      setIsDataReady(true);
+    }
+  }, [products, categories, loading]);
   
   const loadRecentSearches = async () => {
     try {
@@ -183,7 +192,7 @@ export default function SearchScreen() {
       {/* Filter Options */}
       {showFilterOptions && (
         <Animated.View 
-          entering={FadeInDown.duration(200)}
+          entering={isDataReady && animationsEnabled ? FadeInDown.duration(200) : undefined}
           style={styles.filterOptions}
         >
           <Text style={styles.filterTitle}>Sort By</Text>
@@ -247,37 +256,39 @@ export default function SearchScreen() {
           style={styles.categoriesContainer}
           contentContainerStyle={styles.categoriesContent}
         >
-          {categories.map((category, index) => (
-            <Animated.View 
-              key={category.id}
-              entering={FadeInRight.delay(index * 50)}
-            >
-              <TouchableOpacity
-                style={[
-                  styles.categoryChip,
-                  selectedCategory === category.id && styles.selectedCategoryChip,
-                ]}
-                onPress={() => {
-                  setSelectedCategory(
-                    selectedCategory === category.id ? null : category.id
-                  );
-                  if (query) handleSearch();
-                }}
+          {categories && categories.length > 0 && categories.map((category, index) => (
+            category && category.id ? (
+              <Animated.View 
+                key={category.id}
+                entering={isDataReady && animationsEnabled ? FadeInRight.delay(index * 50) : undefined}
               >
-                {category.image_url && (
-                  <Image 
-                    source={{ uri: category.image_url }} 
-                    style={styles.categoryImage}
-                  />
-                )}
-                <Text style={[
-                  styles.categoryText,
-                  selectedCategory === category.id && styles.selectedCategoryText,
-                ]}>
-                  {category.name}
-                </Text>
-              </TouchableOpacity>
-            </Animated.View>
+                <TouchableOpacity
+                  style={[
+                    styles.categoryChip,
+                    selectedCategory === category.id ? styles.selectedCategoryChip : null
+                  ]}
+                  onPress={() => {
+                    setSelectedCategory(
+                      selectedCategory === category.id ? null : category.id
+                    );
+                    if (query) handleSearch();
+                  }}
+                >
+                  {category.image_url && (
+                    <Image 
+                      source={{ uri: category.image_url }} 
+                      style={styles.categoryImage}
+                    />
+                  )}
+                  <Text style={[
+                    styles.categoryText,
+                    selectedCategory === category.id ? styles.selectedCategoryText : null
+                  ]}>
+                    {category.name}
+                  </Text>
+                </TouchableOpacity>
+              </Animated.View>
+            ) : null
           ))}
         </ScrollView>
         
@@ -318,7 +329,7 @@ export default function SearchScreen() {
                     {filteredProducts.map((product, index) => (
                       <Animated.View 
                         key={product.id}
-                        entering={FadeIn.delay(index * 50)}
+                        entering={isDataReady && animationsEnabled ? FadeIn.delay(index * 50) : undefined}
                         style={styles.gridItem}
                       >
                         <TouchableOpacity
@@ -427,57 +438,63 @@ export default function SearchScreen() {
                     <Text style={styles.sectionTitle}>Popular Products</Text>
                   </View>
                   <View style={styles.productsGrid}>
-                    {filteredProducts.map((product, index) => (
-                      <Animated.View 
-                        key={product.id}
-                        entering={FadeIn.delay(index * 50)}
-                        style={styles.gridItem}
-                      >
-                        <TouchableOpacity
-                          style={styles.productCard}
-                          onPress={() => {
-                            router.push({
-                              pathname: '/product/[id]',
-                              params: { id: product.id }
-                            });
-                          }}
+                    {filteredProducts && filteredProducts.length > 0 ? filteredProducts.map((product, index) => (
+                      product && product.id ? (
+                        <Animated.View 
+                          key={product.id}
+                          entering={isDataReady && animationsEnabled ? FadeIn.delay(index * 50) : undefined}
+                          style={styles.gridItem}
                         >
-                          <Image
-                            source={{ uri: product.image_urls[0] || 'https://images.unsplash.com/photo-1542838132-92c53300491e?w=200&q=80' }}
-                            style={styles.productImage}
-                          />
-                          {product.discount && product.discount > 0 && (
-                            <View style={styles.discountBadge}>
-                              <Text style={styles.discountText}>{product.discount}% OFF</Text>
-                            </View>
-                          )}
-                          <View style={styles.productInfo}>
-                            <Text style={styles.productName} numberOfLines={1}>{product.name}</Text>
-                            <Text style={styles.productUnit}>{product.unit}</Text>
-                            {product.rating ? (
-                              <View style={styles.ratingContainer}>
-                                <Star size={12} color="#FFC107" fill="#FFC107" />
-                                <Text style={styles.ratingText}>{product.rating.toFixed(1)}</Text>
+                          <TouchableOpacity
+                            style={styles.productCard}
+                            onPress={() => {
+                              router.push({
+                                pathname: '/product/[id]',
+                                params: { id: product.id }
+                              });
+                            }}
+                          >
+                            <Image
+                              source={{ uri: product.image_urls?.[0] || 'https://images.unsplash.com/photo-1542838132-92c53300491e?w=200&q=80' }}
+                              style={styles.productImage}
+                            />
+                            {product.discount && product.discount > 0 && (
+                              <View style={styles.discountBadge}>
+                                <Text style={styles.discountText}>{product.discount}% OFF</Text>
                               </View>
-                            ) : null}
-                            <View style={styles.priceRow}>
-                              <Text style={styles.productPrice}>₹{product.price.toFixed(2)}</Text>
-                              {product.discount && product.discount > 0 && (
-                                <Text style={styles.originalPrice}>
-                                  ₹{(product.price / (1 - product.discount / 100)).toFixed(2)}
-                                </Text>
+                            )}
+                            <View style={styles.productInfo}>
+                              <Text style={styles.productName} numberOfLines={1}>{product.name}</Text>
+                              <Text style={styles.productUnit}>{product.unit}</Text>
+                              {product.rating ? (
+                                <View style={styles.ratingContainer}>
+                                  <Star size={12} color="#FFC107" fill="#FFC107" />
+                                  <Text style={styles.ratingText}>{product.rating.toFixed(1)}</Text>
+                                </View>
+                              ) : null}
+                              <View style={styles.priceRow}>
+                                <Text style={styles.productPrice}>₹{product.price.toFixed(2)}</Text>
+                                {product.discount && product.discount > 0 && (
+                                  <Text style={styles.originalPrice}>
+                                    ₹{(product.price / (1 - product.discount / 100)).toFixed(2)}
+                                  </Text>
+                                )}
+                              </View>
+                              {!product.in_stock && (
+                                <Text style={styles.outOfStock}>Out of stock</Text>
                               )}
                             </View>
-                            {!product.in_stock && (
-                              <Text style={styles.outOfStock}>Out of stock</Text>
-                            )}
-                          </View>
-                          <TouchableOpacity style={styles.addButton}>
-                            <Plus size={16} color="#fff" />
+                            <TouchableOpacity style={styles.addButton}>
+                              <Plus size={16} color="#fff" />
+                            </TouchableOpacity>
                           </TouchableOpacity>
-                        </TouchableOpacity>
-                      </Animated.View>
-                    ))}
+                        </Animated.View>
+                      ) : null
+                    )) : (
+                      <View style={styles.emptyResults}>
+                        <Text style={styles.emptyResultsText}>No popular products found</Text>
+                      </View>
+                    )}
                   </View>
                 </View>
               </>

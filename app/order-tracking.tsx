@@ -775,102 +775,105 @@ export default function OrderTrackingScreen() {
         >
           <Text style={styles.sectionTitle}>Order Timeline</Text>
           
-          {timeline.map((event, index) => (
-            <Animated.View
-              key={event.title}
-              entering={SlideInRight.delay(100 * (index + 1))}
-              style={styles.timelineItem}
-            >
-                <View
-                  style={[
-                    styles.timelineIconContainer,
-                  event.completed && { backgroundColor: orderStatusInfo.color }
-                ]}
+          {timeline && timeline.length > 0 && timeline.map((event, index) => (
+            event ? (
+              <Animated.View
+                key={event.title}
+                entering={SlideInRight.delay(100 * (index + 1))}
+                style={styles.timelineItem}
               >
-                {React.createElement(event.icon, {
-                  size: 16,
-                  color: event.completed ? '#fff' : '#ccc'
-                  })}
-                </View>
-              
-                <View style={styles.timelineContent}>
-                <View style={styles.timelineHeader}>
-                  <Text
-                    style={[
-                      styles.timelineTitle,
-                      event.completed && { color: orderStatusInfo.color }
-                    ]}
-                  >
-                    {event.title}
-                  </Text>
-                  
-                  {event.timestamp && event.completed && (
-                    <Text style={styles.timelineTime}>
-                      {getTimeAgo(event.timestamp)}
-                    </Text>
-                  )}
-                </View>
-                
-                <Text style={styles.timelineDescription}>
-                  {event.description}
-                </Text>
-              </View>
-              
-              {index < timeline.length - 1 && (
                   <View
                     style={[
-                      styles.timelineConnector,
-                    index < orderStatusInfo.step - 1 && { backgroundColor: orderStatusInfo.color }
+                      styles.timelineIconContainer,
+                      event.completed ? { backgroundColor: orderStatusInfo.color } : null
                     ]}
-                  />
-                )}
-              </Animated.View>
+                  >
+                    {React.createElement(event.icon, {
+                      size: 16,
+                      color: event.completed ? '#fff' : '#ccc'
+                    })}
+                  </View>
+                
+                  <View style={styles.timelineContent}>
+                  <View style={styles.timelineHeader}>
+                    <Text
+                      style={[
+                        styles.timelineTitle,
+                        event.completed ? { color: orderStatusInfo.color } : null
+                      ]}
+                    >
+                      {event.title}
+                    </Text>
+                    
+                    {event.timestamp && event.completed && (
+                      <Text style={styles.timelineTime}>
+                        {getTimeAgo(event.timestamp)}
+                      </Text>
+                    )}
+                  </View>
+                  
+                  <Text style={styles.timelineDescription}>
+                    {event.description}
+                  </Text>
+                </View>
+                
+                {index < timeline.length - 1 && (
+                    <View
+                      style={[
+                        styles.timelineConnector,
+                        index < orderStatusInfo.step - 1 ? { backgroundColor: orderStatusInfo.color } : null
+                      ]}
+                    />
+                  )}
+                </Animated.View>
+              ) : null
             ))}
           </Animated.View>
 
         {/* Delivery Address */}
-        <Animated.View 
-          entering={FadeIn.delay(400)} 
-          style={styles.addressCard}
-        >
-          <View style={styles.addressHeader}>
-            <Text style={styles.sectionTitle}>Delivery Address</Text>
+        {address && (
+          <Animated.View 
+            entering={FadeIn.delay(400)} 
+            style={styles.addressCard}
+          >
+            <View style={styles.addressHeader}>
+              <Text style={styles.sectionTitle}>Delivery Address</Text>
+              {address && (
+                <TouchableOpacity style={styles.viewMapButton} onPress={toggleMap}>
+                  <Text style={styles.viewMapText}>
+                    {showMap ? 'Hide Map' : 'View Map'}
+                  </Text>
+                  <ExternalLink size={14} color="#4CAF50" />
+                </TouchableOpacity>
+              )}
+            </View>
+            
+            {/* Map View */}
             {address && (
-              <TouchableOpacity style={styles.viewMapButton} onPress={toggleMap}>
-                <Text style={styles.viewMapText}>
-                  {showMap ? 'Hide Map' : 'View Map'}
-                    </Text>
-                <ExternalLink size={14} color="#4CAF50" />
-                  </TouchableOpacity>
-            )}
+              <Animated.View style={[styles.mapContainer, animatedMapStyle]}>
+                <View style={styles.mapPlaceholder}>
+                  <MapPin size={24} color="#4CAF50" />
+                  <Text style={styles.mapPlaceholderText}>
+                    Map View Placeholder
+                  </Text>
                 </View>
-          
-          {/* Map View */}
-          {address && (
-            <Animated.View style={[styles.mapContainer, animatedMapStyle]}>
-              <View style={styles.mapPlaceholder}>
-                <MapPin size={24} color="#4CAF50" />
-                <Text style={styles.mapPlaceholderText}>
-                  Map View Placeholder
-                </Text>
-              </View>
-            </Animated.View>
-          )}
+              </Animated.View>
+            )}
 
             {address ? (
               <View style={styles.addressContent}>
                 <MapPin size={20} color="#666" />
-              <View style={styles.addressDetails}>
-                <Text style={styles.addressType}>
-                  {address.type || 'Delivery Address'}
-                </Text>
-                <Text style={styles.addressText}>
-                  {address.address}
-                  {address.area && `, ${address.area}`}
-                  {address.city && `, ${address.city}`}
-                  {(address as any).pincode && ` - ${(address as any).pincode}`}
-                </Text>
-              </View>
+                <View style={styles.addressDetails}>
+                  <Text style={styles.addressType}>
+                    {address.type || 'Delivery Address'}
+                  </Text>
+                  <Text style={styles.addressText}>
+                    {address.address}
+                    {address.area && `, ${address.area}`}
+                    {address.city && `, ${address.city}`}
+                    {(address as any).pincode && ` - ${(address as any).pincode}`}
+                  </Text>
+                </View>
               </View>
             ) : (
             <View style={styles.noAddressContainer}>
@@ -879,6 +882,7 @@ export default function OrderTrackingScreen() {
             </View>
             )}
           </Animated.View>
+        )}
 
         {/* Order Items */}
         <Animated.View 

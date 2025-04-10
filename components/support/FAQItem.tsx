@@ -3,6 +3,7 @@ import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { ChevronDown, ChevronUp } from 'lucide-react-native';
 import Animated, { useAnimatedStyle, useSharedValue, withTiming, Easing, interpolate, FadeIn } from 'react-native-reanimated';
 import { FAQ } from '@/hooks/useHelpSupport';
+import { AnimationConfig } from '@/lib/AnimationConfig';
 
 interface FAQItemProps {
   faq: FAQ;
@@ -13,11 +14,26 @@ interface FAQItemProps {
 }
 
 export function FAQItem({ faq, index, isExpanded, onToggle, highlightTerms = [] }: FAQItemProps) {
+  // Early return if faq data is missing
+  if (!faq || !faq.question || !faq.answer) {
+    return null;
+  }
+
   const rotateAnim = useSharedValue(0);
   const heightAnim = useSharedValue(0);
   
+  // Check if animations are enabled globally
+  const animationsEnabled = AnimationConfig.isEnabled();
+  
   // Update animation values when expanded state changes
   React.useEffect(() => {
+    // Skip animations if globally disabled
+    if (!animationsEnabled) {
+      rotateAnim.value = isExpanded ? 1 : 0;
+      heightAnim.value = isExpanded ? 1 : 0;
+      return;
+    }
+    
     rotateAnim.value = withTiming(isExpanded ? 1 : 0, {
       duration: 300,
       easing: Easing.bezier(0.25, 0.1, 0.25, 1),
@@ -27,7 +43,7 @@ export function FAQItem({ faq, index, isExpanded, onToggle, highlightTerms = [] 
       duration: 300,
       easing: Easing.bezier(0.25, 0.1, 0.25, 1),
     });
-  }, [isExpanded, rotateAnim, heightAnim]);
+  }, [isExpanded, rotateAnim, heightAnim, animationsEnabled]);
   
   // Create animated styles
   const iconStyle = useAnimatedStyle(() => {
@@ -74,10 +90,10 @@ export function FAQItem({ faq, index, isExpanded, onToggle, highlightTerms = [] 
   
   return (
     <Animated.View 
-      entering={FadeIn.delay(index * 100).duration(300)}
+      entering={animationsEnabled ? FadeIn.delay(index * 100).duration(300) : undefined}
       style={[
         styles.faqItem,
-        isExpanded && styles.expandedItem
+        isExpanded ? styles.expandedItem : null
       ]}
     >
       <TouchableOpacity

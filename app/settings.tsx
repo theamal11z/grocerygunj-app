@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
-import { View, Text, ScrollView, TextInput, TouchableOpacity, Image, StyleSheet, Alert } from 'react-native';
+import { View, Text, ScrollView, TextInput, TouchableOpacity, Image, StyleSheet, Alert, Switch } from 'react-native';
 import { router } from 'expo-router';
-import { ChevronLeft, Camera, User, Mail, Phone, Shield } from 'lucide-react-native';
+import { ChevronLeft, Camera, User, Mail, Phone, Shield, AlertTriangle } from 'lucide-react-native';
 import { useProfile } from '@/hooks/useProfile';
 import { useImagePicker } from '@/hooks/useImagePicker';
 import { useStorage } from '@/hooks/useStorage';
 import { useAuth } from '@/hooks/useAuth';
+import { useSettings } from '@/hooks/useSettings';
 import { LoadingSpinner } from '@/components/LoadingSpinner';
 import { ErrorMessage } from '@/components/ErrorMessage';
 
@@ -14,6 +15,7 @@ export default function SettingsScreen() {
   const { user } = useAuth();
   const { pickImage } = useImagePicker();
   const { uploadAvatar, loading: uploadLoading } = useStorage();
+  const { animationsEnabled, setAnimationsEnabled } = useSettings();
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState({
     full_name: '',
@@ -21,6 +23,15 @@ export default function SettingsScreen() {
     phone_number: '',
     avatar_url: '',
   });
+
+  // For development - enable or disable animations to diagnose issues
+  const handleAnimationToggle = (value: boolean) => {
+    setAnimationsEnabled(value);
+    // Alert when animations are disabled to confirm the toggle worked
+    if (!value) {
+      Alert.alert('Testing Mode', 'Animations have been disabled for testing. This may help identify if animations are causing crashes.');
+    }
+  };
 
   React.useEffect(() => {
     if (profile) {
@@ -240,6 +251,33 @@ export default function SettingsScreen() {
             <ChevronLeft size={20} color="#666" style={{ transform: [{ rotate: '180deg' }] }} />
           </TouchableOpacity>
         </View>
+
+        {/* Development Settings Section */}
+        <View style={styles.section}>
+          <View style={styles.developmentHeader}>
+            <Text style={styles.sectionTitle}>Development Settings</Text>
+            <AlertTriangle size={16} color="#FF9800" />
+          </View>
+          <Text style={styles.developmentNote}>
+            These settings are for diagnosing app issues
+          </Text>
+          
+          <View style={styles.menuItem}>
+            <Text style={styles.menuText}>Enable Animations</Text>
+            <Switch
+              value={animationsEnabled}
+              onValueChange={handleAnimationToggle}
+              trackColor={{ false: '#767577', true: '#c8e6c9' }}
+              thumbColor={animationsEnabled ? '#4CAF50' : '#f4f3f4'}
+            />
+          </View>
+          
+          {!animationsEnabled && (
+            <Text style={styles.warningText}>
+              Animations are disabled. App may seem less responsive but should be more stable if animations are causing crashes.
+            </Text>
+          )}
+        </View>
       </ScrollView>
     </View>
   );
@@ -248,18 +286,16 @@ export default function SettingsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: '#f5f5f5',
   },
   header: {
     flexDirection: 'row',
-    alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 20,
+    alignItems: 'center',
+    paddingHorizontal: 16,
     paddingTop: 60,
-    paddingBottom: 20,
+    paddingBottom: 16,
     backgroundColor: '#fff',
-    borderBottomWidth: 1,
-    borderBottomColor: '#f5f5f5',
   },
   backButton: {
     width: 40,
@@ -269,7 +305,7 @@ const styles = StyleSheet.create({
   },
   title: {
     fontFamily: 'Poppins-SemiBold',
-    fontSize: 20,
+    fontSize: 18,
     color: '#333',
   },
   content: {
@@ -419,5 +455,26 @@ const styles = StyleSheet.create({
     fontFamily: 'Poppins-Medium',
     fontSize: 16,
     color: '#333',
+  },
+  developmentHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 8,
+  },
+  developmentNote: {
+    fontFamily: 'Poppins-Regular',
+    fontSize: 14,
+    color: '#666',
+    marginBottom: 16,
+    fontStyle: 'italic',
+  },
+  warningText: {
+    fontFamily: 'Poppins-Regular',
+    fontSize: 12,
+    color: '#FF9800',
+    marginTop: 8,
+    marginHorizontal: 16,
+    fontStyle: 'italic',
   },
 }); 

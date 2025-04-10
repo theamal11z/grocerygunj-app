@@ -1,5 +1,6 @@
 import { useCallback } from 'react';
 import { useSettingsStore } from '@/store';
+import { useAnimationConfig } from '@/lib/AnimationConfig';
 
 export function useSettings() {
   const { 
@@ -9,6 +10,12 @@ export function useSettings() {
     loadSettings, 
     updateDeliverySettings 
   } = useSettingsStore();
+
+  const { 
+    animationsEnabled, 
+    toggleAnimations, 
+    setAnimationsEnabled 
+  } = useAnimationConfig();
 
   const refreshSettings = useCallback(async () => {
     await loadSettings();
@@ -20,6 +27,10 @@ export function useSettings() {
     loading,
     error,
     refreshSettings,
-    updateDeliverySettings
+    updateDeliverySettings,
+    // Animation settings
+    animationsEnabled,
+    toggleAnimations,
+    setAnimationsEnabled
   };
 } 

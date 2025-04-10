@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
 import Animated, { FadeIn } from 'react-native-reanimated';
+import { AnimationConfig } from '@/lib/AnimationConfig';
 
 interface Category {
   name: string;
@@ -14,12 +15,15 @@ interface CategoryFilterProps {
 }
 
 export function CategoryFilter({ categories, selectedCategory, onSelectCategory }: CategoryFilterProps) {
-  if (!categories.length) {
+  if (!categories || !Array.isArray(categories) || categories.length === 0) {
     return null;
   }
   
+  // Check if animations are enabled globally
+  const animationsEnabled = AnimationConfig.isEnabled();
+  
   return (
-    <Animated.View entering={FadeIn.delay(100).duration(300)}>
+    <Animated.View entering={animationsEnabled ? FadeIn.delay(100).duration(300) : undefined}>
       <Text style={styles.filterTitle}>Filter by category</Text>
       <ScrollView 
         horizontal
@@ -29,34 +33,36 @@ export function CategoryFilter({ categories, selectedCategory, onSelectCategory 
         <TouchableOpacity
           style={[
             styles.filterOption,
-            selectedCategory === null && styles.selectedFilter
+            selectedCategory === null ? styles.selectedFilter : null
           ]}
           onPress={() => onSelectCategory(null)}
         >
           <Text style={[
             styles.filterOptionText,
-            selectedCategory === null && styles.selectedFilterText
+            selectedCategory === null ? styles.selectedFilterText : null
           ]}>
             All Categories
           </Text>
         </TouchableOpacity>
         
         {categories.map(category => (
-          <TouchableOpacity
-            key={category.name}
-            style={[
-              styles.filterOption,
-              selectedCategory === category.name && styles.selectedFilter
-            ]}
-            onPress={() => onSelectCategory(category.name)}
-          >
-            <Text style={[
-              styles.filterOptionText,
-              selectedCategory === category.name && styles.selectedFilterText
-            ]}>
-              {category.name} ({category.count})
-            </Text>
-          </TouchableOpacity>
+          category && category.name ? (
+            <TouchableOpacity
+              key={category.name}
+              style={[
+                styles.filterOption,
+                selectedCategory === category.name ? styles.selectedFilter : null
+              ]}
+              onPress={() => onSelectCategory(category.name)}
+            >
+              <Text style={[
+                styles.filterOptionText,
+                selectedCategory === category.name ? styles.selectedFilterText : null
+              ]}>
+                {category.name} ({category.count})
+              </Text>
+            </TouchableOpacity>
+          ) : null
         ))}
       </ScrollView>
     </Animated.View>

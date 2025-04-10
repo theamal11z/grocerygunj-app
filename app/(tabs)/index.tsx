@@ -12,6 +12,7 @@ import { supabase } from '@/lib/supabase';
 import Animated, { FadeIn, FadeInRight } from 'react-native-reanimated';
 import type { Product } from '@/lib/supabase';
 import { OfferBanner } from '@/components/OfferBanner';
+import { AnimationConfig } from '@/lib/AnimationConfig';
 
 const { width } = Dimensions.get('window');
 
@@ -24,6 +25,10 @@ export default function HomeScreen() {
   const [userName, setUserName] = useState('User');
   const [profile, setProfile] = useState<{ first_name?: string } | null>(null);
   const [userAddress, setUserAddress] = useState('');
+  const [isDataReady, setIsDataReady] = useState(false);
+  
+  // Check if animations are enabled
+  const animationsEnabled = AnimationConfig.isEnabled();
 
   useEffect(() => {
     // Get user profile data
@@ -35,7 +40,12 @@ export default function HomeScreen() {
     if (products && products.length > 0) {
       fetchPopularProducts();
     }
-  }, [user, products]);
+    
+    // Mark data as ready when products and categories are loaded
+    if (products && categories && !productsLoading && !categoriesLoading) {
+      setIsDataReady(true);
+    }
+  }, [user, products, categories, productsLoading, categoriesLoading]);
 
   const fetchUserProfile = async () => {
     if (!user) return;
@@ -91,19 +101,30 @@ export default function HomeScreen() {
 
   // Products on sale (with discounts)
   const deals = products
-    .filter(product => product.discount && product.discount > 0)
-    .slice(0, 5);
+    ? products.filter(product => product.discount && product.discount > 0).slice(0, 5)
+    : [];
 
   // Featured products (can be manually curated in a real app)
-  const featuredProducts = products.slice(0, 3);
+  const featuredProducts = products ? products.slice(0, 3) : [];
 
   // Get seasonal products (just using some random products here)
-  const seasonalProducts = [...products]
-    .sort(() => 0.5 - Math.random())
-    .slice(0, 4);
+  const seasonalProducts = products 
+    ? [...products].sort(() => 0.5 - Math.random()).slice(0, 4)
+    : [];
 
   // The greeting message
   const greeting = profile?.first_name ? `Hello, ${profile.first_name}!` : 'Hello, User!';
+
+  // Render animations only if data is ready and animations are enabled
+  const renderAnimated = (content, enteringAnimation) => {
+    if (!isDataReady) return content;
+    
+    return (
+      <Animated.View entering={animationsEnabled ? enteringAnimation : undefined}>
+        {content}
+      </Animated.View>
+    );
+  };
 
   return (
     <ScrollView 
@@ -159,34 +180,42 @@ export default function HomeScreen() {
           imageStyle={{ borderRadius: 16 }}
         >
           <View style={styles.bannerContent}>
-            <Animated.View entering={FadeIn.delay(200)}>
-              <Text style={styles.bannerTitle}>Fresh Vegetables</Text>
-              <Text style={styles.bannerSubtitle}>Get 20% off on your first order</Text>
-              <View style={styles.bannerButton}>
-                <Text style={styles.bannerButtonText}>Shop Now</Text>
-              </View>
-            </Animated.View>
+            {renderAnimated(
+              <View>
+                <Text style={styles.bannerTitle}>Fresh Vegetables</Text>
+                <Text style={styles.bannerSubtitle}>Get 20% off on your first order</Text>
+                <View style={styles.bannerButton}>
+                  <Text style={styles.bannerButtonText}>Shop Now</Text>
+                </View>
+              </View>,
+              FadeIn.delay(200)
+            )}
           </View>
         </ImageBackground>
       </TouchableOpacity>
 
       {/* Delivery Status Card (for logged in users) */}
       {user && (
-        <Animated.View entering={FadeIn.delay(200)} style={styles.deliveryCard}>
-          <View style={styles.deliveryIconContainer}>
-            <Truck size={24} color="#2ECC71" />
-          </View>
-          <View style={styles.deliveryInfo}>
-            <Text style={styles.deliveryTitle}>Your delivery status</Text>
-            <Text style={styles.deliveryStatus}>Delivery in 30 minutes</Text>
-          </View>
-          <TouchableOpacity 
-            style={styles.trackButton}
-            onPress={() => router.push('/(tabs)/orders')}
-          >
-            <Text style={styles.trackButtonText}>Track</Text>
-          </TouchableOpacity>
-        </Animated.View>
+        <View style={styles.deliveryCard}>
+          {renderAnimated(
+            <View style={{flexDirection: 'row', alignItems: 'center'}}>
+              <View style={styles.deliveryIconContainer}>
+                <Truck size={24} color="#2ECC71" />
+              </View>
+              <View style={styles.deliveryInfo}>
+                <Text style={styles.deliveryTitle}>Your delivery status</Text>
+                <Text style={styles.deliveryStatus}>Delivery in 30 minutes</Text>
+              </View>
+              <TouchableOpacity 
+                style={styles.trackButton}
+                onPress={() => router.push('/(tabs)/orders')}
+              >
+                <Text style={styles.trackButtonText}>Track</Text>
+              </TouchableOpacity>
+            </View>,
+            FadeIn.delay(200)
+          )}
+        </View>
       )}
 
       {/* Categories Section */}
@@ -202,26 +231,30 @@ export default function HomeScreen() {
           </TouchableOpacity>
         </View>
         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.categoriesScroll}>
-          {categories.map((category, index) => (
-            <Animated.View 
-              key={category.id} 
-              entering={FadeInRight.delay(index * 100)}
-            >
-              <TouchableOpacity 
-                style={styles.categoryCard}
-                onPress={() => router.push({
-                  pathname: '/products',
-                  params: { categoryId: category.id }
-                })}
-              >
-                <Image 
-                  source={{ uri: category.image_url || 'https://images.unsplash.com/photo-1542838132-92c53300491e?w=200&q=80' }} 
-                  style={styles.categoryImage} 
-                />
-                <Text style={styles.categoryName}>{category.name}</Text>
-              </TouchableOpacity>
-            </Animated.View>
-          ))}
+          {categories && categories.length > 0 && categories.map((category, index) => {
+            if (!category || !category.id) return null;
+            
+            return (
+              <View key={category.id}>
+                {renderAnimated(
+                  <TouchableOpacity 
+                    style={styles.categoryCard}
+                    onPress={() => router.push({
+                      pathname: '/products',
+                      params: { categoryId: category.id }
+                    })}
+                  >
+                    <Image 
+                      source={{ uri: category.image_url || 'https://images.unsplash.com/photo-1542838132-92c53300491e?w=200&q=80' }} 
+                      style={styles.categoryImage} 
+                    />
+                    <Text style={styles.categoryName}>{category.name}</Text>
+                  </TouchableOpacity>,
+                  FadeInRight.delay(index * 100)
+                )}
+              </View>
+            );
+          })}
         </ScrollView>
       </View>
 
@@ -243,38 +276,38 @@ export default function HomeScreen() {
           </View>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.dealsScroll}>
             {deals.map((deal, index) => (
-              <Animated.View 
-                key={deal.id} 
-                entering={FadeInRight.delay(index * 100)}
-              >
-                <TouchableOpacity 
-                  style={styles.dealCard}
-                  onPress={() => router.push({
-                    pathname: '/product/[id]',
-                    params: { id: deal.id }
-                  })}
-                >
-                  <Image 
-                    source={{ uri: deal.image_urls[0] || 'https://images.unsplash.com/photo-1542838132-92c53300491e?w=200&q=80' }} 
-                    style={styles.dealImage} 
-                  />
-                  {deal.discount && deal.discount > 0 && (
-                    <View style={styles.discountBadge}>
-                      <Text style={styles.discountText}>{deal.discount}% OFF</Text>
+              <View key={deal.id}>
+                {renderAnimated(
+                  <TouchableOpacity 
+                    style={styles.dealCard}
+                    onPress={() => router.push({
+                      pathname: '/product/[id]',
+                      params: { id: deal.id }
+                    })}
+                  >
+                    <Image 
+                      source={{ uri: deal.image_urls[0] || 'https://images.unsplash.com/photo-1542838132-92c53300491e?w=200&q=80' }} 
+                      style={styles.dealImage} 
+                    />
+                    {deal.discount && deal.discount > 0 && (
+                      <View style={styles.discountBadge}>
+                        <Text style={styles.discountText}>{deal.discount}% OFF</Text>
+                      </View>
+                    )}
+                    <View style={styles.dealDetails}>
+                      <Text style={styles.dealName} numberOfLines={1}>{deal.name}</Text>
+                      <Text style={styles.dealUnit}>{deal.unit}</Text>
+                      <View style={styles.priceRow}>
+                        <Text style={styles.dealPrice}>₹{deal.price.toFixed(2)}</Text>
+                        {deal.discount && deal.discount > 0 && (
+                          <Text style={styles.originalPrice}>₹{(deal.price / (1 - deal.discount / 100)).toFixed(2)}</Text>
+                        )}
+                      </View>
                     </View>
-                  )}
-                  <View style={styles.dealDetails}>
-                    <Text style={styles.dealName} numberOfLines={1}>{deal.name}</Text>
-                    <Text style={styles.dealUnit}>{deal.unit}</Text>
-                    <View style={styles.priceRow}>
-                      <Text style={styles.dealPrice}>₹{deal.price.toFixed(2)}</Text>
-                      {deal.discount && deal.discount > 0 && (
-                        <Text style={styles.originalPrice}>₹{(deal.price / (1 - deal.discount / 100)).toFixed(2)}</Text>
-                      )}
-                    </View>
-                  </View>
-                </TouchableOpacity>
-              </Animated.View>
+                  </TouchableOpacity>,
+                  FadeInRight.delay(index * 100)
+                )}
+              </View>
             ))}
           </ScrollView>
         </View>
@@ -293,35 +326,35 @@ export default function HomeScreen() {
         </View>
         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.productsScroll}>
           {popularProducts.map((product, index) => (
-            <Animated.View 
-              key={product.id}
-              entering={FadeInRight.delay(index * 100)}
-            >
-              <TouchableOpacity 
-                style={styles.productCard}
-                onPress={() => router.push({
-                  pathname: '/product/[id]',
-                  params: { id: product.id }
-                })}
-              >
-                <Image 
-                  source={{ uri: product.image_urls[0] || 'https://images.unsplash.com/photo-1542838132-92c53300491e?w=200&q=80' }} 
-                  style={styles.productImage} 
-                />
-                <View style={styles.productDetails}>
-                  <Text style={styles.productName} numberOfLines={1}>{product.name}</Text>
-                  <Text style={styles.productUnit}>{product.unit}</Text>
-                  <View style={styles.ratingContainer}>
-                    <Star size={14} color="#FFC107" fill="#FFC107" />
-                    <Text style={styles.ratingText}>{(product.rating ?? 4.8).toFixed(1)}</Text>
+            <View key={product.id}>
+              {renderAnimated(
+                <TouchableOpacity 
+                  style={styles.productCard}
+                  onPress={() => router.push({
+                    pathname: '/product/[id]',
+                    params: { id: product.id }
+                  })}
+                >
+                  <Image 
+                    source={{ uri: product.image_urls[0] || 'https://images.unsplash.com/photo-1542838132-92c53300491e?w=200&q=80' }} 
+                    style={styles.productImage} 
+                  />
+                  <View style={styles.productDetails}>
+                    <Text style={styles.productName} numberOfLines={1}>{product.name}</Text>
+                    <Text style={styles.productUnit}>{product.unit}</Text>
+                    <View style={styles.ratingContainer}>
+                      <Star size={14} color="#FFC107" fill="#FFC107" />
+                      <Text style={styles.ratingText}>{(product.rating ?? 4.8).toFixed(1)}</Text>
+                    </View>
+                    <Text style={styles.productPrice}>₹{product.price.toFixed(2)}</Text>
                   </View>
-                  <Text style={styles.productPrice}>₹{product.price.toFixed(2)}</Text>
-                </View>
-                <TouchableOpacity style={styles.addButton}>
-                  <Text style={styles.addButtonText}>+</Text>
-                </TouchableOpacity>
-              </TouchableOpacity>
-            </Animated.View>
+                  <TouchableOpacity style={styles.addButton}>
+                    <Text style={styles.addButtonText}>+</Text>
+                  </TouchableOpacity>
+                </TouchableOpacity>,
+                FadeInRight.delay(index * 100)
+              )}
+            </View>
           ))}
         </ScrollView>
       </View>
@@ -337,28 +370,27 @@ export default function HomeScreen() {
         
         <View style={styles.gridContainer}>
           {seasonalProducts.map((product, index) => (
-            <Animated.View 
-              key={product.id}
-              entering={FadeIn.delay(index * 100)}
-              style={styles.gridItem}
-            >
-              <TouchableOpacity 
-                style={styles.gridCard}
-                onPress={() => router.push({
-                  pathname: '/product/[id]',
-                  params: { id: product.id }
-                })}
-              >
-                <Image 
-                  source={{ uri: product.image_urls[0] || 'https://images.unsplash.com/photo-1542838132-92c53300491e?w=200&q=80' }} 
-                  style={styles.gridImage} 
-                />
-                <View style={styles.gridDetails}>
-                  <Text style={styles.gridName} numberOfLines={1}>{product.name}</Text>
-                  <Text style={styles.gridPrice}>₹{product.price}/{product.unit}</Text>
-                </View>
-              </TouchableOpacity>
-            </Animated.View>
+            <View key={product.id}>
+              {renderAnimated(
+                <TouchableOpacity 
+                  style={styles.gridCard}
+                  onPress={() => router.push({
+                    pathname: '/product/[id]',
+                    params: { id: product.id }
+                  })}
+                >
+                  <Image 
+                    source={{ uri: product.image_urls[0] || 'https://images.unsplash.com/photo-1542838132-92c53300491e?w=200&q=80' }} 
+                    style={styles.gridImage} 
+                  />
+                  <View style={styles.gridDetails}>
+                    <Text style={styles.gridName} numberOfLines={1}>{product.name}</Text>
+                    <Text style={styles.gridPrice}>₹{product.price}/{product.unit}</Text>
+                  </View>
+                </TouchableOpacity>,
+                FadeIn.delay(index * 100)
+              )}
+            </View>
           ))}
         </View>
       </View>

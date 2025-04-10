@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { 
   View, 
   Text, 
@@ -25,6 +25,7 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { AnimationConfig } from '@/lib/AnimationConfig';
 
 // Import wishlist components
 import { WishlistItem } from '@/components/wishlist/WishlistItem';
@@ -235,13 +236,24 @@ export default function WishlistScreen() {
     );
   }
 
+  // Add these states near the top of the component function
+  const animationsEnabled = AnimationConfig.isEnabled();
+  const [isDataReady, setIsDataReady] = useState(false);
+
+  // Add this effect to track when data is ready
+  useEffect(() => {
+    if (!loading && user) {
+      setIsDataReady(true);
+    }
+  }, [loading, user, wishlistItems]);
+
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
       <StatusBar barStyle="dark-content" />
       
       {/* Header */}
       <Animated.View 
-        entering={FadeIn.duration(300)} 
+        entering={isDataReady && animationsEnabled ? FadeIn.duration(300) : undefined} 
         style={styles.header}
       >
         <View style={styles.headerRow}>
@@ -278,7 +290,10 @@ export default function WishlistScreen() {
         
         {/* Filter section */}
         {showFilter && (
-          <Animated.View style={[filterContainerStyle]}>
+          <Animated.View 
+            style={[filterContainerStyle]}
+            entering={isDataReady && animationsEnabled ? undefined : undefined}
+          >
             <CategoryFilter 
               categories={categories}
               selectedCategory={selectedCategory}
