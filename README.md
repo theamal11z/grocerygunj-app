@@ -11,6 +11,23 @@ A modern grocery shopping app built with React Native and Expo.
 - Address and payment method management
 - **Coupon and discount system**
 
+## Environment Setup
+
+This project uses Expo's built-in environment variables system for configuration:
+
+1. Create a `.env` file in the root directory based on `.env.example`
+2. Add your Supabase credentials and other environment variables
+3. Environment variables are accessed through the app.config.js configuration
+
+Example:
+```bash
+# .env file
+EXPO_PUBLIC_SUPABASE_URL=your_supabase_url
+EXPO_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+```
+
+All environment variables are centrally managed through the `utils/env.ts` helper, which provides type-safe access to configuration values.
+
 ## Coupon System
 
 The app now includes a complete coupon system that allows users to:
@@ -50,6 +67,10 @@ The coupon system is integrated across multiple parts of the app:
 ```bash
 # Install dependencies
 npm install
+
+# Set up environment variables
+cp .env.example .env
+# Edit .env with your actual configuration values
 
 # Start the development server
 npm run dev

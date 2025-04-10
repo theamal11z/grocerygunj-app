@@ -1,114 +1,172 @@
-import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, Animated, Dimensions } from 'react-native';
+import React, { useEffect } from 'react';
+import { View, Text, StyleSheet, Animated, TouchableOpacity } from 'react-native';
+import { useUiStore } from '@/store';
+import { X, AlertCircle, CheckCircle, Info, AlertTriangle } from 'lucide-react-native';
 
-interface ToastProps {
-  message: string;
-  duration?: number;
-  type?: 'success' | 'error' | 'info';
-  onHide?: () => void;
+interface ToastItemProps {
+  toast: {
+    id: string;
+    type: 'success' | 'error' | 'info' | 'warning';
+    message: string;
+    duration?: number;
+  };
+  onClose: () => void;
 }
 
-const { width } = Dimensions.get('window');
+export function ToastContainer() {
+  const toasts = useUiStore((state) => state.toastMessages);
+  const removeToast = useUiStore((state) => state.removeToast);
+  
+  if (toasts.length === 0) return null;
+  
+  return (
+    <View style={styles.container}>
+      {toasts.map((toast) => (
+        <ToastItem 
+          key={toast.id} 
+          toast={toast} 
+          onClose={() => removeToast(toast.id)} 
+        />
+      ))}
+    </View>
+  );
+}
 
-const Toast: React.FC<ToastProps> = ({ 
-  message, 
-  duration = 3000, 
-  type = 'success',
-  onHide
-}) => {
-  const [fadeAnim] = useState(new Animated.Value(0));
-  const [translateY] = useState(new Animated.Value(20));
+function ToastItem({ toast, onClose }: ToastItemProps) {
+  const fadeAnim = React.useRef(new Animated.Value(0)).current;
   
   useEffect(() => {
-    // Fade in
-    Animated.parallel([
+    Animated.sequence([
       Animated.timing(fadeAnim, {
         toValue: 1,
         duration: 300,
         useNativeDriver: true,
       }),
-      Animated.timing(translateY, {
+      Animated.timing(fadeAnim, {
         toValue: 0,
         duration: 300,
+        delay: toast.duration || 3000,
         useNativeDriver: true,
       }),
-    ]).start();
-
-    // Fade out after duration
-    const timer = setTimeout(() => {
-      Animated.parallel([
-        Animated.timing(fadeAnim, {
-          toValue: 0,
-          duration: 300,
-          useNativeDriver: true,
-        }),
-        Animated.timing(translateY, {
-          toValue: 20,
-          duration: 300,
-          useNativeDriver: true,
-        }),
-      ]).start(() => {
-        if (onHide) onHide();
-      });
-    }, duration);
-
-    return () => clearTimeout(timer);
-  }, [fadeAnim, translateY, duration, onHide]);
-
-  const getBackgroundColor = () => {
-    switch (type) {
+    ]).start(() => {
+      onClose();
+    });
+  }, []);
+  
+  const getToastIcon = () => {
+    switch (toast.type) {
       case 'success':
-        return '#2ECC71';
+        return <CheckCircle color="#22C55E" size={20} />;
       case 'error':
-        return '#E74C3C';
+        return <AlertCircle color="#EF4444" size={20} />;
+      case 'warning':
+        return <AlertTriangle color="#F59E0B" size={20} />;
       case 'info':
-        return '#3498DB';
       default:
-        return '#2ECC71';
+        return <Info color="#3B82F6" size={20} />;
     }
   };
-
+  
+  const getToastStyle = () => {
+    switch (toast.type) {
+      case 'success':
+        return styles.successToast;
+      case 'error':
+        return styles.errorToast;
+      case 'warning':
+        return styles.warningToast;
+      case 'info':
+      default:
+        return styles.infoToast;
+    }
+  };
+  
   return (
-    <Animated.View
+    <Animated.View 
       style={[
-        styles.container,
-        { 
-          backgroundColor: getBackgroundColor(),
-          opacity: fadeAnim,
-          transform: [{ translateY }]
-        }
+        styles.toast,
+        getToastStyle(),
+        { opacity: fadeAnim }
       ]}
     >
-      <Text style={styles.message}>{message}</Text>
+      <View style={styles.iconContainer}>
+        {getToastIcon()}
+      </View>
+      <Text style={styles.message}>{toast.message}</Text>
+      <TouchableOpacity onPress={onClose} style={styles.closeButton}>
+        <X size={16} color="#666" />
+      </TouchableOpacity>
     </Animated.View>
   );
-};
+}
+
+// Helper function to display toast from anywhere in the app
+export function showToast(
+  message: string, 
+  type: 'success' | 'error' | 'info' | 'warning' = 'info',
+  duration = 3000
+) {
+  useUiStore.getState().addToast({
+    message,
+    type,
+    duration,
+  });
+}
 
 const styles = StyleSheet.create({
   container: {
     position: 'absolute',
-    bottom: 100,
-    left: width / 2 - 150,
-    width: 300,
-    minHeight: 50,
-    borderRadius: 25,
-    paddingHorizontal: 20,
-    paddingVertical: 12,
-    justifyContent: 'center',
+    top: 60,
+    left: 0,
+    right: 0,
+    zIndex: 9999,
     alignItems: 'center',
+    paddingHorizontal: 16,
+  },
+  toast: {
+    width: '100%',
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 8,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderRadius: 8,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
-    elevation: 5,
-    zIndex: 9999,
+    elevation: 3,
+  },
+  successToast: {
+    backgroundColor: '#DCFCE7',
+    borderLeftWidth: 4,
+    borderLeftColor: '#22C55E',
+  },
+  errorToast: {
+    backgroundColor: '#FEE2E2',
+    borderLeftWidth: 4,
+    borderLeftColor: '#EF4444',
+  },
+  warningToast: {
+    backgroundColor: '#FEF3C7',
+    borderLeftWidth: 4,
+    borderLeftColor: '#F59E0B',
+  },
+  infoToast: {
+    backgroundColor: '#DBEAFE',
+    borderLeftWidth: 4,
+    borderLeftColor: '#3B82F6',
+  },
+  iconContainer: {
+    marginRight: 12,
   },
   message: {
-    fontFamily: 'Poppins-Medium',
+    flex: 1,
+    fontFamily: 'Poppins-Regular',
     fontSize: 14,
-    color: '#fff',
-    textAlign: 'center',
-  }
-});
-
-export default Toast; 
+    color: '#333',
+  },
+  closeButton: {
+    padding: 4,
+  },
+}); 

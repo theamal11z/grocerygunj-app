@@ -1,25 +1,48 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, ActivityIndicator } from 'react-native';
 import { Mail, Lock, User } from 'lucide-react-native';
 import { useAuth } from '@/hooks/useAuth';
 import { ErrorMessage } from '@/components/ErrorMessage';
+import { router } from 'expo-router';
 
 export default function AuthScreen() {
-  const { signIn, signUp, error } = useAuth();
+  const { signIn, signUp, error, navigateAfterAuth } = useAuth();
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [fullName, setFullName] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
   
   const handleSubmit = async () => {
-    if (isLogin) {
-      await signIn(email, password);
-    } else {
-      await signUp(email, password, {
-        data: {
-          full_name: fullName,
-        },
-      });
+    setIsLoading(true);
+    try {
+      if (isLogin) {
+        const { success } = await signIn(email, password);
+        if (success) {
+          // Explicitly handle navigation after successful login
+          navigateAfterAuth('/(tabs)');
+        }
+      } else {
+        const { success, requiresEmailVerification } = await signUp(email, password, {
+          data: {
+            full_name: fullName,
+          },
+        });
+        
+        if (success) {
+          if (requiresEmailVerification) {
+            // Navigate to email verification page
+            router.push('/verify-email');
+          } else {
+            // Explicitly handle navigation after successful signup
+            navigateAfterAuth('/(tabs)');
+          }
+        }
+      }
+    } catch (error) {
+      console.error('Auth error:', error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -79,13 +102,17 @@ export default function AuthScreen() {
         {error && <ErrorMessage message={error.message} />}
 
         <TouchableOpacity 
-          style={[styles.button, !isValid() && styles.buttonDisabled]} 
+          style={[styles.button, (!isValid() || isLoading) && styles.buttonDisabled]} 
           onPress={handleSubmit}
-          disabled={!isValid()}
+          disabled={!isValid() || isLoading}
         >
-          <Text style={styles.buttonText}>
-            {isLogin ? 'Login' : 'Sign Up'}
-          </Text>
+          {isLoading ? (
+            <ActivityIndicator color="#fff" />
+          ) : (
+            <Text style={styles.buttonText}>
+              {isLogin ? 'Login' : 'Sign Up'}
+            </Text>
+          )}
         </TouchableOpacity>
 
         <TouchableOpacity

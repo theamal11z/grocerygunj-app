@@ -1,35 +1,62 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { supabase } from '@/lib/supabase';
-import type { AuthError, User } from '@supabase/supabase-js';
+import type { AuthError, User, Session } from '@supabase/supabase-js';
 import { router } from 'expo-router';
+import { useUserStore } from '@/store';
+import { showToast } from '@/components/Toast';
 
 interface AuthContextType {
   user: User | null;
+  session: Session | null;
   loading: boolean;
   error: AuthError | null;
-  signIn: (email: string, password: string) => Promise<void>;
-  signUp: (email: string, password: string, options?: { data?: { full_name?: string } }) => Promise<void>;
+  signIn: (email: string, password: string) => Promise<{ success: boolean }>;
+  signUp: (email: string, password: string, options?: { data?: { full_name?: string } }) => Promise<{ success: boolean; requiresEmailVerification: boolean }>;
   signOut: () => Promise<void>;
+  navigateAfterAuth: (route?: string) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
+  const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<AuthError | null>(null);
+  
+  // Get Zustand store actions
+  const { 
+    setProfile, 
+    setAuthenticated, 
+    fetchProfile, 
+    clearUserState 
+  } = useUserStore();
 
   useEffect(() => {
     // Get initial session
     supabase.auth.getSession().then(({ data: { session } }) => {
       setUser(session?.user ?? null);
+      setSession(session);
+      setAuthenticated(!!session);
       setLoading(false);
+      
+      // If we have a session, fetch the user profile
+      if (session) {
+        fetchProfile();
+      }
     });
 
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setUser(session?.user ?? null);
+      setSession(session);
+      setAuthenticated(!!session);
       setLoading(false);
+      
+      // If authentication state changes, update the profile
+      if (session) {
+        fetchProfile();
+      }
     });
 
     return () => subscription.unsubscribe();
@@ -38,14 +65,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const signIn = async (email: string, password: string) => {
     try {
       setError(null);
-      const { error } = await supabase.auth.signInWithPassword({
+      const { error, data } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
       if (error) throw error;
-      router.replace('/(tabs)');
+      
+      // Set authenticated in our Zustand store
+      setAuthenticated(true);
+      
+      // Fetch user profile
+      await fetchProfile();
+      
+      showToast('Successfully signed in', 'success');
+      return { success: true };
     } catch (err) {
-      setError(err as AuthError);
+      const authError = err as AuthError;
+      setError(authError);
+      showToast(authError.message || 'Failed to sign in', 'error');
+      return { success: false };
     }
   };
 
@@ -73,7 +111,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       });
 
       if (signUpError) {
-        
         throw signUpError;
       }
 
@@ -82,18 +119,29 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
       
       // Check if email confirmation is required
-      if (!signUpData.session) {
-        // Redirect to email verification page
-        router.push('/verify-email');
-        return;
+      const requiresEmailVerification = !signUpData.session;
+      
+      // If no email verification is required, set as authenticated
+      if (!requiresEmailVerification) {
+        setAuthenticated(true);
+        await fetchProfile();
+        showToast('Successfully signed up', 'success');
+      } else {
+        showToast('Please check your email to verify your account', 'info');
       }
       
-      // If we have a session (email confirmation not required), proceed normally
-      router.replace('/(tabs)');
+      return { 
+        success: true, 
+        requiresEmailVerification 
+      };
     } catch (err) {
-      
-      setError(err as AuthError);
-      throw err;
+      const authError = err as AuthError;
+      setError(authError);
+      showToast(authError.message || 'Failed to sign up', 'error');
+      return { 
+        success: false, 
+        requiresEmailVerification: false 
+      };
     }
   };
 
@@ -102,19 +150,35 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setError(null);
       const { error } = await supabase.auth.signOut();
       if (error) throw error;
-      router.replace('/auth');
+      
+      // Clear user state from Zustand store
+      clearUserState();
+      
+      showToast('Successfully signed out', 'success');
     } catch (err) {
-      setError(err as AuthError);
+      const authError = err as AuthError;
+      setError(authError);
+      showToast(authError.message || 'Failed to sign out', 'error');
+    }
+  };
+
+  const navigateAfterAuth = (route?: string) => {
+    if (route) {
+      router.replace(route as any);
+    } else {
+      router.replace('/(tabs)' as any);
     }
   };
 
   const value = {
     user,
+    session,
     loading,
     error,
     signIn,
     signUp,
     signOut,
+    navigateAfterAuth,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
